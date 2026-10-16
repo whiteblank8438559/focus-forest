@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eef4e8">
+  <meta name="description" content="Focus Forest 專注森林：用番茄鐘種下一棵樹，累積自己的專注森林。">
+  <title>Focus Forest｜專注森林</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1d3a31;
+      --muted: #61766a;
+      --green: #285b43;
+      --green-dark: #174632;
+      --mint: #d9e9d6;
+      --pale: #f4f8ee;
+      --cream: #fffaf0;
+      --line: #dce7d7;
+      --pink: #f4c9ba;
+      --shadow: 0 20px 55px rgba(34, 70, 47, .09);
+      font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: #f4f7ef; color: var(--ink); min-width: 320px; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible { outline: 3px solid #e9ad6e; outline-offset: 3px; }
+    button:disabled { cursor: not-allowed; opacity: .5; }
+    .shell { max-width: 1240px; padding: 0 32px 64px; margin: auto; }
+    .topbar { min-height: 90px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { color: var(--green-dark); text-decoration: none; display: flex; align-items: center; gap: 11px; font-weight: 900; font-size: 20px; letter-spacing: .015em; }
+    .brand-icon { width: 40px; height: 40px; border-radius: 15px; background: #dbeed5; display: grid; place-items: center; font-size: 23px; }
+    .nav { display: flex; flex-wrap: wrap; gap: 6px; padding: 5px; border: 1px solid #e3ebdf; background: rgba(255,255,255,.75); border-radius: 100px; }
+    .nav button { border: 0; border-radius: 100px; padding: 10px 18px; background: transparent; color: var(--muted); font-weight: 750; }
+    .nav button[aria-selected="true"] { background: var(--green); color: white; box-shadow: 0 4px 10px #285b432c; }
+    .hero { position: relative; border-radius: 34px; background: linear-gradient(117deg,#e9f3df 0%,#eff5e8 58%,#fbf4e7 100%); overflow: hidden; border: 1px solid #e0ebd8; padding: 36px 42px; min-height: 202px; display: flex; justify-content: space-between; align-items: center; }
+    .hero::after { content: ""; position: absolute; right: -70px; bottom: -170px; width: 360px; height: 360px; border-radius: 50%; background: rgba(194,220,182,.36); }
+    .hero-copy { position: relative; z-index: 1; }
+    .eyebrow { margin: 0 0 11px; font-size: 13px; letter-spacing: .13em; font-weight: 900; color: #61856d; }
+    h1 { font-size: clamp(32px,4vw,51px); margin: 0 0 9px; line-height: 1.2; letter-spacing: -.025em; }
+    .hero p:last-child { margin: 0; color: #607669; font-size: 16px; line-height: 1.7; }
+    .hero-art { position: relative; z-index: 1; width: 214px; height: 140px; flex: none; }
+    .hero-art svg { width: 100%; height: 100%; }
+    .tab-panel { margin-top: 25px; }
+    [hidden] { display: none !important; }
+    .dashboard { display: grid; grid-template-columns: minmax(0,1.55fr) minmax(315px,.88fr); gap: 22px; align-items: stretch; }
+    .card { background: white; border: 1px solid #e3e9dd; box-shadow: var(--shadow); border-radius: 30px; }
+    .session-card { overflow: hidden; }
+    .scene { height: 344px; position: relative; overflow: hidden; background: linear-gradient(#eaf5ee 0%,#f6f8e8 76%,#dcebcf 76%,#d0e1bf 100%); display: grid; place-items: center; }
+    .scene::before { content: ""; position: absolute; width: 500px; height: 500px; border-radius: 50%; background: #fff8dc7a; left: -155px; top: -350px; }
+    .scene::after { content: ""; position: absolute; z-index: 1; left: -10%; bottom: -80px; width: 120%; height: 154px; border-radius: 50% 50% 0 0; background: #bfd5ad; }
+    .sun { position: absolute; right: 70px; top: 38px; width: 65px; height: 65px; border-radius: 50%; background: #f8e8a6; box-shadow: 0 0 0 14px #f8e8a64f; }
+    .cloud { position: absolute; top: 75px; left: 13%; color: white; font-size: 60px; line-height: 1; opacity: .8; }
+    .cloud.two { left: auto; right: 24%; top: 146px; font-size: 39px; opacity: .55; }
+    .stage-badge { position: absolute; z-index: 3; left: 25px; top: 25px; background: #ffffffcf; color: var(--green); border: 1px solid #e6eddb; padding: 9px 14px; border-radius: 99px; font-size: 13px; font-weight: 850; }
+    .main-tree { position: relative; z-index: 2; width: min(52%,240px); height: 270px; margin-top: 26px; filter: drop-shadow(0 14px 8px #496b4030); }
+    .main-tree svg { width: 100%; height: 100%; overflow: visible; }
+    .main-tree.growing svg { animation: tree-sway 3.5s ease-in-out infinite; transform-origin: bottom center; }
+    @keyframes tree-sway { 0%,100% { transform: rotate(-1.1deg); } 50% { transform: rotate(1.1deg); } }
+    .scene-flower { position: absolute; z-index: 3; bottom: 42px; font-size: 24px; color: #fff5df; }
+    .scene-flower.left { left: 17%; } .scene-flower.right { right: 18%; }
+    .timer-area { padding: 23px 30px 28px; text-align: center; }
+    .status-text { font-size: 13px; color: var(--muted); font-weight: 800; letter-spacing: .08em; }
+    .timer { font-size: clamp(55px,7vw,83px); line-height: 1.15; font-weight: 900; letter-spacing: -.06em; font-variant-numeric: tabular-nums; margin: 5px 0 14px; color: #244d3b; }
+    .progress-track { height: 11px; border-radius: 999px; background: #e9efe5; overflow: hidden; }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#95bf83,#3e885b); transition: width .45s ease; }
+    .progress-meta { display: flex; justify-content: space-between; margin: 8px 0 20px; color: #68806f; font-size: 12px; font-weight: 750; }
+    .controls { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .primary, .secondary, .quiet { border-radius: 15px; min-height: 48px; padding: 10px 19px; font-weight: 850; border: 1px solid transparent; }
+    .primary { color: white; background: var(--green); box-shadow: 0 9px 19px #285b4333; }
+    .primary:hover:not(:disabled) { background: #1e4f38; }
+    .secondary { background: #eef4e9; color: var(--green); border-color: #d8e6d1; }
+    .secondary:hover:not(:disabled) { background: #e2eedc; }
+    .quiet { color: #7a776a; background: transparent; border-color: #dfe6dd; }
+    .quiet:hover:not(:disabled) { background: #f8f8f3; }
+    .settings-card { padding: 27px; display: flex; flex-direction: column; gap: 22px; }
+    .card-title { margin: 0; font-size: 21px; letter-spacing: -.02em; }
+    .card-subtitle { margin: 5px 0 0; font-size: 13px; line-height: 1.6; color: var(--muted); }
+    .field-label { display: block; margin-bottom: 11px; font-size: 14px; font-weight: 850; }
+    .minute-field { display: flex; align-items: center; gap: 11px; }
+    .minute-field input { width: 125px; height: 54px; border: 1px solid #cfddcd; border-radius: 15px; background: #fbfdf9; color: var(--ink); font-size: 22px; font-weight: 850; padding: 0 15px; }
+    .minute-field span { color: var(--muted); font-weight: 800; }
+    .hint { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+    .error { color: #b34a3b; min-height: 18px; margin: 5px 0 0; font-size: 12px; font-weight: 700; }
+    .tree-choices { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .tree-choice { min-height: 97px; padding: 10px 4px 8px; display: grid; place-items: center; gap: 2px; border: 2px solid #e4ebe2; background: #fbfdf9; border-radius: 17px; color: var(--ink); font-size: 13px; font-weight: 800; }
+    .tree-choice[aria-pressed="true"] { border-color: #4d9268; background: #eef8ec; box-shadow: 0 0 0 3px #dcefdc; }
+    .tree-choice svg { width: 43px; height: 51px; }
+    .lock-note { padding: 11px 13px; background: #f7f8ee; border-radius: 13px; color: #6e7865; font-size: 12px; line-height: 1.6; }
+    .today-card { margin-top: auto; padding: 20px; border-radius: 20px; background: linear-gradient(120deg,#eaf3e7,#f9f6e9); border: 1px solid #e2ebd9; }
+    .today-card span { font-size: 13px; font-weight: 850; color: #67806d; }
+    .today-numbers { display: flex; align-items: baseline; gap: 9px; margin-top: 5px; }
+    .today-numbers strong { font-size: 27px; color: var(--green); }
+    .today-numbers small { color: var(--muted); }
+    .notice { margin-top: 19px; border-radius: 18px; padding: 14px 18px; line-height: 1.6; background: #fff5df; border: 1px solid #eedbaa; color: #77592c; font-size: 14px; }
+    .notice.success { background: #e7f4df; border-color: #c7e1bf; color: #285b43; }
+    .notice.warn { background: #fff1eb; border-color: #f0d3c9; color: #904e3b; }
+    .section-head { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin: 34px 0 18px; }
+    .section-head h2 { margin: 0; font-size: clamp(25px,3vw,32px); }
+    .section-head p { margin: 5px 0 0; color: var(--muted); line-height: 1.65; }
+    .pill { padding: 8px 13px; border-radius: 99px; background: white; border: 1px solid var(--line); color: var(--green); white-space: nowrap; font-size: 13px; font-weight: 850; }
+    .forest-card { padding: 20px; min-height: 370px; overflow: hidden; background: linear-gradient(#e5f3ed,#f5f6df 68%,#d4e5be 68%); }
+    .forest-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(125px,1fr)); gap: 16px 10px; min-height: 310px; align-items: end; }
+    .forest-tree { border: 0; background: transparent; display: grid; justify-items: center; gap: 3px; color: var(--green-dark); font-size: 12px; font-weight: 750; padding: 10px 2px; border-radius: 18px; }
+    .forest-tree:hover, .forest-tree:focus-visible { background: #ffffff88; transform: translateY(-3px); }
+    .forest-tree svg { width: 100px; height: 128px; filter: drop-shadow(0 8px 4px #42734224); }
+    .forest-empty { grid-column: 1/-1; align-self: center; text-align: center; color: #6b7e6c; line-height: 1.8; }
+    .forest-empty .emoji { display: block; font-size: 50px; margin-bottom: 8px; }
+    .records-card { padding: 5px 23px; }
+    .record-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 19px 2px; border-bottom: 1px solid #e9eee7; }
+    .record-row:last-child { border-bottom: 0; }
+    .record-row strong { color: var(--green-dark); }
+    .record-row span { color: var(--muted); font-size: 13px; }
+    .record-values { text-align: right; display: flex; gap: 22px; align-items: baseline; }
+    .record-values b { color: var(--green); }
+    .record-empty { color: var(--muted); padding: 35px 0; text-align: center; line-height: 1.8; }
+    .footer { text-align: center; color: #839386; font-size: 12px; margin-top: 38px; }
+    dialog { width: min(420px,calc(100% - 30px)); border: 1px solid #dce8d8; border-radius: 25px; padding: 26px; color: var(--ink); box-shadow: 0 30px 80px #1b3d2a38; }
+    dialog::backdrop { background: #1d3a3180; }
+    .dialog-top { display: flex; align-items: center; justify-content: space-between; }
+    .dialog-top h3 { margin: 0; font-size: 21px; }
+    .icon-button { width: 35px; height: 35px; border: 0; border-radius: 50%; background: #eff4e9; color: var(--green); font-size: 20px; }
+    .dialog-tree { text-align: center; margin: 10px 0; }
+    .dialog-tree svg { width: 130px; height: 150px; }
+    .detail-list { margin: 0; }
+    .detail-list div { display: flex; justify-content: space-between; gap: 10px; padding: 11px 0; border-top: 1px solid #ebf0e8; }
+    .detail-list dt { color: var(--muted); } .detail-list dd { margin: 0; font-weight: 800; text-align: right; }
+    @media (max-width: 860px) { .dashboard { grid-template-columns: 1fr; } .settings-card { display: grid; grid-template-columns: 1fr 1fr; } .settings-card header, .today-card { grid-column: 1/-1; } .hero-art { width: 155px; } }
+    @media (max-width: 600px) { .shell { padding: 0 15px 40px; } .topbar { min-height: 74px; align-items: start; padding-top: 16px; flex-direction: column; gap: 13px; padding-bottom: 13px; } .brand { font-size: 18px; } .brand-icon { width: 35px; height: 35px; } .nav { width: 100%; display: grid; grid-template-columns: repeat(3,1fr); } .nav button { padding: 9px 4px; font-size: 13px; } .hero { padding: 24px; border-radius: 26px; min-height: 170px; } .hero-art { position: absolute; opacity: .34; right: -12px; width: 135px; } .hero p:last-child { max-width: 250px; font-size: 13px; } .card { border-radius: 23px; } .scene { height: 296px; } .main-tree { height: 235px; } .timer-area { padding: 22px 19px 23px; } .settings-card { display: flex; padding: 23px; } .section-head { align-items: start; flex-direction: column; gap: 9px; } .record-values { flex-direction: column; gap: 2px; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="Focus Forest 回到首頁"><span class="brand-icon" aria-hidden="true">🌱</span><span>Focus Forest</span></a>
+      <nav class="nav" aria-label="主要導覽" role="tablist">
+        <button type="button" class="tab-button" role="tab" aria-selected="true" aria-controls="focus-panel" id="focus-tab" data-tab="focus">專注小屋</button>
+        <button type="button" class="tab-button" role="tab" aria-selected="false" aria-controls="forest-panel" id="forest-tab" data-tab="forest">我的森林</button>
+        <button type="button" class="tab-button" role="tab" aria-selected="false" aria-controls="records-panel" id="records-tab" data-tab="records">專注紀錄</button>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">MAKE TIME TO GROW</p>
+          <h1 id="page-title">專注一會兒，<br>種下一片森林。</h1>
+          <p>每完成一段專注，就讓一棵小樹在你的森林裡長大。</p>
+        </div>
+        <div class="hero-art" aria-hidden="true"><svg viewBox="0 0 220 150"><ellipse cx="110" cy="138" rx="92" ry="12" fill="#b6d4ae"/><path d="M112 131V68" stroke="#7b6543" stroke-width="16" stroke-linecap="round"/><circle cx="109" cy="57" r="48" fill="#5fa675"/><circle cx="72" cy="78" r="29" fill="#7fc18b"/><circle cx="144" cy="79" r="31" fill="#4f9e6a"/><circle cx="96" cy="37" r="17" fill="#8dca90"/><circle cx="166" cy="29" r="4" fill="#fff4d3"/><circle cx="42" cy="40" r="3" fill="#fff4d3"/></svg></div>
+      </section>
+
+      <section class="tab-panel" id="focus-panel" role="tabpanel" aria-labelledby="focus-tab">
+        <div class="dashboard">
+          <article class="card session-card" aria-label="專注計時器">
+            <div class="scene" role="img" aria-label="正在成長的樹木">
+              <div class="sun" aria-hidden="true"></div><span class="cloud" aria-hidden="true">☁</span><span class="cloud two" aria-hidden="true">☁</span>
+              <span class="stage-badge" id="stage-badge">種子 · 準備開始</span>
+              <div class="main-tree" id="main-tree" aria-hidden="true"></div>
+              <span class="scene-flower left" aria-hidden="true">✿</span><span class="scene-flower right" aria-hidden="true">✿</span>
+            </div>
+            <div class="timer-area">
+              <div class="status-text" id="status-text">選一棵樹，開始今天的專注</div>
+              <div class="timer" id="timer" role="timer" aria-live="off">25:00</div>
+              <div class="progress-track" role="progressbar" aria-label="專注進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+              <div class="progress-meta"><span>專注進度</span><span id="progress-label">0%</span></div>
+              <div class="controls">
+                <button type="button" class="primary" id="start-button">開始專注</button>
+                <button type="button" class="secondary" id="pause-button" hidden>暫停</button>
+                <button type="button" class="secondary" id="resume-button" hidden>繼續</button>
+                <button type="button" class="quiet" id="reset-button" hidden>重設</button>
+              </div>
+            </div>
+          </article>
+
+          <aside class="card settings-card" aria-label="專注設定">
+            <header><h2 class="card-title">打造這次的小森林</h2><p class="card-subtitle">設定一段剛剛好的時間，讓小樹陪你一起專心。</p></header>
+            <div><label class="field-label" for="minutes">專注時間</label><div class="minute-field"><input id="minutes" type="number" min="1" max="120" step="1" value="25" inputmode="numeric"><span>分鐘</span></div><p class="hint">可設定 1–120 分鐘，預設 25 分鐘。</p><p class="error" id="time-error" aria-live="polite"></p></div>
+            <div><span class="field-label" id="tree-choice-label">選擇樹種</span><div class="tree-choices" role="group" aria-labelledby="tree-choice-label">
+              <button type="button" class="tree-choice" data-tree="oak" aria-pressed="true"><span class="choice-art" aria-hidden="true"></span><span>闊葉樹</span></button>
+              <button type="button" class="tree-choice" data-tree="pine" aria-pressed="false"><span class="choice-art" aria-hidden="true"></span><span>針葉樹</span></button>
+              <button type="button" class="tree-choice" data-tree="blossom" aria-pressed="false"><span class="choice-art" aria-hidden="true"></span><span>開花樹</span></button>
+            </div></div>
+            <div class="lock-note" id="lock-note">開始後，這輪的時間與樹種會固定；完成或重設後即可重新選擇。</div>
+            <div class="today-card"><span>今天已種下</span><div class="today-numbers"><strong id="today-count">0 棵</strong><small>・</small><strong id="today-minutes">0 分鐘</strong></div></div>
+          </aside>
+        </div>
+        <div class="notice" id="notice" role="status" aria-live="polite" hidden></div>
+      </section>
+
+      <section class="tab-panel" id="forest-panel" role="tabpanel" aria-labelledby="forest-tab" hidden>
+        <div class="section-head"><div><h2>我的森林</h2><p>每一棵樹，都是你認真完成的一段時間。點選樹木可查看紀錄。</p></div><span class="pill" id="forest-total">共 0 棵樹</span></div>
+        <div class="card forest-card"><div class="forest-grid" id="forest-grid"></div></div>
+      </section>
+
+      <section class="tab-panel" id="records-panel" role="tabpanel" aria-labelledby="records-tab" hidden>
+        <div class="section-head"><div><h2>專注紀錄</h2><p>依完成當天的日期，回顧你的專注分鐘數與完成次數。</p></div><span class="pill" id="records-total">累積 0 分鐘</span></div>
+        <div class="card records-card" id="records-list"></div>
+      </section>
+    </main>
+    <footer class="footer">Focus Forest · 讓每一次專注，都長成自己的風景。</footer>
+  </div>
+
+  <dialog id="tree-dialog" aria-labelledby="dialog-title">
+    <div class="dialog-top"><h3 id="dialog-title">這棵樹的故事</h3><button type="button" class="icon-button" id="close-dialog" aria-label="關閉">×</button></div>
+    <div class="dialog-tree" id="dialog-tree" aria-hidden="true"></div>
+    <dl class="detail-list"><div><dt>樹木種類</dt><dd id="detail-tree"></dd></div><div><dt>完成時間</dt><dd id="detail-date"></dd></div><div><dt>專注時長</dt><dd id="detail-duration"></dd></div></dl>
+  </dialog>
+
+  <script>
+    (() => {
+      'use strict';
+      const STORAGE_KEY = 'focusForest.v1';
+      const LIVE_KEY = 'focusForest.live.v1';
+      const TAB_KEY = 'focusForest.tab.v1';
+      const TREE_NAMES = { oak: '闊葉樹', pine: '針葉樹', blossom: '開花樹' };
+      const TREE_IDS = Object.keys(TREE_NAMES);
+      const $ = id => document.getElementById(id);
+      const tabId = sessionStorage.getItem(TAB_KEY) || makeId();
+      sessionStorage.setItem(TAB_KEY, tabId);
+      let state = loadState();
+      let blocked = false;
+      let completedPreview = null;
+      let timerHandle = null;
+      let saveHandle = null;
+      let lastTreeKey = '';
+
+      function makeId() { return typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2); }
+      function defaultState() { return { settings: { minutes: 25, tree: 'oak' }, active: null, sessions: [] }; }
+      function loadState() {
+        try {
+          const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+          if (!raw || !Array.isArray(raw.sessions)) return defaultState();
+          const validSessions = raw.sessions.filter(s => s && typeof s.id === 'string' && TREE_IDS.includes(s.tree) && Number.isInteger(s.durationMinutes) && s.durationMinutes >= 1 && s.durationMinutes <= 120 && Number.isFinite(Date.parse(s.completedAt)));
+          const minutes = Number(raw.settings?.minutes);
+          const tree = raw.settings?.tree;
+          const active = raw.active && typeof raw.active.id === 'string' && TREE_IDS.includes(raw.active.tree) && Number.isFinite(raw.active.durationMs) && raw.active.durationMs >= 60000 && raw.active.durationMs <= 7200000 && Number.isFinite(raw.active.elapsedMs) && ['running', 'paused'].includes(raw.active.status) ? raw.active : null;
+          return { settings: { minutes: Number.isInteger(minutes) && minutes >= 1 && minutes <= 120 ? minutes : 25, tree: TREE_IDS.includes(tree) ? tree : 'oak' }, active, sessions: validSessions };
+        } catch { return defaultState(); }
+      }
+      function saveState() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); return true; }
+        catch { showNotice('無法儲存資料。請確認瀏覽器允許網站儲存空間，再重新嘗試。', 'warn'); return false; }
+      }
+      function liveOwner() {
+        try { const live = JSON.parse(localStorage.getItem(LIVE_KEY) || 'null'); return live && Date.now() - live.at < 60000 ? live.tabId : null; }
+        catch { return null; }
+      }
+      function keepAlive() { if (!blocked && state.active) { try { localStorage.setItem(LIVE_KEY, JSON.stringify({ tabId, at: Date.now() })); } catch { /* Storage errors are reported by saveState. */ } } }
+      function clearLive() { try { if (liveOwner() === tabId) localStorage.removeItem(LIVE_KEY); } catch { /* Nothing to clear. */ } }
+      function initialRecovery() {
+        if (!state.active) return;
+        const owner = liveOwner();
+        if (owner && owner !== tabId) { blocked = true; showNotice('另一個分頁正在使用 Focus Forest。請回到原分頁操作；若原分頁已關閉，稍後重新整理即可恢復。', 'warn'); return; }
+        state.active.status = 'paused';
+        state.active.startedAt = null;
+        state.active.ownerId = tabId;
+        saveState();
+        keepAlive();
+        showNotice('已保留上次專注的最近進度，現在處於暫停狀態。可按「繼續」或「重設」。', 'success');
+      }
+      function elapsedMs() {
+        const a = state.active;
+        if (!a) return 0;
+        const run = a.status === 'running' && Number.isFinite(a.startedAt) ? Math.max(0, Date.now() - a.startedAt) : 0;
+        return Math.min(a.durationMs, a.elapsedMs + run);
+      }
+      function checkpoint() {
+        const a = state.active;
+        if (!a || blocked || a.status !== 'running') return;
+        a.elapsedMs = elapsedMs();
+        a.startedAt = Date.now();
+        a.savedAt = Date.now();
+        saveState();
+        keepAlive();
+      }
+      function setNotice(message, type = '') { const el = $('notice'); el.textContent = message; el.className = 'notice' + (type ? ' ' + type : ''); el.hidden = false; }
+      function showNotice(message, type = '') { setNotice(message, type); }
+      function hideNotice() { $('notice').hidden = true; }
+      function selectedMinutes() {
+        const value = $('minutes').value.trim();
+        const n = Number(value);
+        if (!/^\d+$/.test(value) || !Number.isInteger(n) || n < 1 || n > 120) { $('time-error').textContent = '請輸入 1–120 的整數分鐘。'; return null; }
+        $('time-error').textContent = '';
+        return n;
+      }
+      function startSession() {
+        if (blocked || state.active) return;
+        const owner = liveOwner();
+        if (owner && owner !== tabId) { blocked = true; render(); setNotice('另一個分頁已有專注進行中。請在原分頁操作。', 'warn'); return; }
+        const minutes = selectedMinutes();
+        if (minutes === null) return;
+        state.settings.minutes = minutes;
+        completedPreview = null;
+        state.active = { id: makeId(), tree: state.settings.tree, durationMs: minutes * 60000, elapsedMs: 0, startedAt: Date.now(), savedAt: Date.now(), status: 'running', ownerId: tabId };
+        if (!saveState()) { state.active = null; return; }
+        keepAlive(); hideNotice(); render();
+      }
+      function pauseSession() {
+        if (blocked || state.active?.status !== 'running') return;
+        state.active.elapsedMs = elapsedMs();
+        state.active.startedAt = null;
+        state.active.status = 'paused';
+        state.active.savedAt = Date.now();
+        saveState(); render();
+      }
+      function resumeSession() {
+        if (blocked || state.active?.status !== 'paused') return;
+        state.active.status = 'running';
+        state.active.startedAt = Date.now();
+        state.active.savedAt = Date.now();
+        saveState(); keepAlive(); hideNotice(); render();
+      }
+      function resetSession() {
+        if (blocked || !state.active) return;
+        state.active = null;
+        completedPreview = null;
+        saveState(); clearLive();
+        setNotice('已取消這次專注；森林與完成次數不會增加。');
+        render();
+      }
+      function completeSession() {
+        const a = state.active;
+        if (blocked || !a || a.status !== 'running' || elapsedMs() < a.durationMs) return;
+        const record = { id: a.id, tree: a.tree, durationMinutes: Math.round(a.durationMs / 60000), completedAt: new Date().toISOString() };
+        const alreadySaved = state.sessions.some(s => s.id === record.id);
+        if (!alreadySaved) state.sessions.push(record);
+        state.active = null;
+        if (!saveState()) { if (!alreadySaved) state.sessions.pop(); state.active = a; a.elapsedMs = a.durationMs; a.startedAt = Date.now(); return; }
+        completedPreview = record;
+        clearLive();
+        setNotice('太棒了！這段專注已完成，一棵' + TREE_NAMES[record.tree] + '已加入你的森林。', 'success');
+        render();
+      }
+      function tick() {
+        if (state.active?.status === 'running' && !blocked) {
+          if (elapsedMs() >= state.active.durationMs) completeSession();
+          else renderTimerAndTree();
+        }
+      }
+      function formatTime(ms) { const total = Math.ceil(Math.max(0, ms) / 1000); return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0'); }
+      function stageFor(p) { return p >= 1 ? 3 : p >= .5 ? 2 : p >= .25 ? 1 : 0; }
+      function treeSvg(tree, stage) {
+        const trunk = '<path d="M100 194V112" stroke="#816747" stroke-width="19" stroke-linecap="round"/><path d="M100 148L69 122M100 135l31-28" stroke="#816747" stroke-width="10" stroke-linecap="round" fill="none"/>';
+        const ground = '<ellipse cx="100" cy="204" rx="65" ry="11" fill="#8baa75" opacity=".58"/>';
+        let foliage = '';
+        if (stage === 0) foliage = '<ellipse cx="100" cy="186" rx="18" ry="11" fill="#9c7049"/><path d="M101 180c-8-10-5-18 0-22 7 7 7 14 0 22" fill="#6dab72"/>';
+        if (stage === 1) foliage = '<path d="M100 197v-69" stroke="#608a5e" stroke-width="10" stroke-linecap="round"/><ellipse cx="82" cy="139" rx="23" ry="11" transform="rotate(25 82 139)" fill="#76b87d"/><ellipse cx="119" cy="129" rx="23" ry="11" transform="rotate(-25 119 129)" fill="#62a974"/>';
+        if (stage === 2) foliage = '<path d="M100 196v-78" stroke="#806748" stroke-width="13" stroke-linecap="round"/><circle cx="100" cy="105" r="31" fill="' + (tree === 'pine' ? '#438a70' : tree === 'blossom' ? '#91bd7c' : '#78b584') + '"/><circle cx="76" cy="126" r="22" fill="#8dc591"/><circle cx="125" cy="126" r="22" fill="#67aa7b"/>';
+        if (stage === 3 && tree === 'oak') foliage = trunk + '<circle cx="100" cy="83" r="50" fill="#68ad7d"/><circle cx="63" cy="108" r="31" fill="#81bf87"/><circle cx="139" cy="107" r="31" fill="#559d71"/><circle cx="85" cy="55" r="23" fill="#8cc891"/>';
+        if (stage === 3 && tree === 'pine') foliage = '<path d="M100 196V66" stroke="#806748" stroke-width="17" stroke-linecap="round"/><path d="M100 26L55 101h25l-37 56h114l-37-56h25z" fill="#3f8a70"/><path d="M100 26L55 101h25l-18 27h76l-18-27h25z" fill="#52a078"/><path d="M100 46L81 87h39z" fill="#70b48a"/>';
+        if (stage === 3 && tree === 'blossom') foliage = trunk + '<circle cx="100" cy="80" r="48" fill="#82b57e"/><circle cx="62" cy="105" r="30" fill="#93c48a"/><circle cx="139" cy="106" r="31" fill="#6fad78"/><g fill="#f9d8d3"><circle cx="77" cy="66" r="11"/><circle cx="121" cy="51" r="12"/><circle cx="145" cy="97" r="10"/><circle cx="53" cy="109" r="10"/><circle cx="107" cy="113" r="11"/><circle cx="93" cy="38" r="9"/></g><g fill="#f5bcb9"><circle cx="78" cy="66" r="4"/><circle cx="121" cy="51" r="4"/><circle cx="145" cy="97" r="4"/><circle cx="54" cy="109" r="4"/><circle cx="107" cy="113" r="4"/></g>';
+        return '<svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' + ground + foliage + '</svg>';
+      }
+      function renderTimerAndTree() {
+        const a = state.active;
+        const duration = a?.durationMs ?? (state.settings.minutes * 60000);
+        const elapsed = a ? elapsedMs() : completedPreview ? duration : 0;
+        const progress = a ? Math.min(1, elapsed / duration) : completedPreview ? 1 : 0;
+        const stage = stageFor(progress);
+        const tree = a?.tree ?? completedPreview?.tree ?? state.settings.tree;
+        $('timer').textContent = formatTime(duration - elapsed);
+        $('progress-fill').style.width = Math.round(progress * 100) + '%';
+        $('progress-label').textContent = Math.round(progress * 100) + '%';
+        $('progress-track').setAttribute('aria-valuenow', String(Math.round(progress * 100)));
+        const treeKey = tree + '-' + stage;
+        if (lastTreeKey !== treeKey) { $('main-tree').innerHTML = treeSvg(tree, stage); lastTreeKey = treeKey; }
+        $('main-tree').classList.toggle('growing', a?.status === 'running');
+        const names = ['種子', '發芽', '樹苗', '大樹'];
+        $('stage-badge').textContent = names[stage] + ' · ' + (a?.status === 'running' ? '成長中' : a?.status === 'paused' ? '已暫停' : completedPreview ? '已完成' : '準備開始');
+        $('status-text').textContent = blocked ? '另一個分頁正在使用專注計時器' : a?.status === 'running' ? '保持專心，小樹正在長大' : a?.status === 'paused' ? '已暫停，準備好再繼續' : completedPreview ? '完成一輪，森林又多了一棵樹' : '選一棵樹，開始今天的專注';
+      }
+      function localDateKey(iso) { const d = new Date(iso); return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-'); }
+      function todayStats() { const today = localDateKey(new Date().toISOString()); const entries = state.sessions.filter(s => localDateKey(s.completedAt) === today); return { count: entries.length, minutes: entries.reduce((sum, s) => sum + s.durationMinutes, 0) }; }
+      function renderForest() {
+        $('forest-total').textContent = '共 ' + state.sessions.length + ' 棵樹';
+        const grid = $('forest-grid'); grid.replaceChildren();
+        if (!state.sessions.length) { const empty = document.createElement('div'); empty.className = 'forest-empty'; empty.innerHTML = '<span class="emoji" aria-hidden="true">🌱</span>森林還在等待第一棵樹。<br>完成一段專注，就能把它種在這裡。'; grid.append(empty); return; }
+        [...state.sessions].reverse().forEach(s => {
+          const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'forest-tree';
+          btn.setAttribute('aria-label', TREE_NAMES[s.tree] + '，' + localDateKey(s.completedAt) + ' 完成，查看詳細資料');
+          btn.innerHTML = treeSvg(s.tree, 3);
+          const label = document.createElement('span'); label.textContent = TREE_NAMES[s.tree]; btn.append(label);
+          btn.addEventListener('click', () => openDetail(s)); grid.append(btn);
+        });
+      }
+      function renderRecords() {
+        const total = state.sessions.reduce((sum, s) => sum + s.durationMinutes, 0);
+        $('records-total').textContent = '累積 ' + total + ' 分鐘';
+        const box = $('records-list'); box.replaceChildren();
+        if (!state.sessions.length) { const empty = document.createElement('div'); empty.className = 'record-empty'; empty.textContent = '完成第一段專注後，這裡就會出現你的每日紀錄。'; box.append(empty); return; }
+        const days = new Map();
+        state.sessions.forEach(s => { const key = localDateKey(s.completedAt); const data = days.get(key) || { count: 0, minutes: 0 }; data.count++; data.minutes += s.durationMinutes; days.set(key, data); });
+        [...days].sort((a,b) => b[0].localeCompare(a[0])).forEach(([date, data]) => {
+          const row = document.createElement('div'); row.className = 'record-row';
+          const dateEl = document.createElement('strong'); dateEl.textContent = date;
+          const values = document.createElement('div'); values.className = 'record-values';
+          const minutes = document.createElement('span'); minutes.innerHTML = '<b>' + data.minutes + '</b> 分鐘';
+          const count = document.createElement('span'); count.innerHTML = '<b>' + data.count + '</b> 次完成';
+          values.append(minutes, count); row.append(dateEl, values); box.append(row);
+        });
+      }
+      function openDetail(s) {
+        $('dialog-tree').innerHTML = treeSvg(s.tree, 3);
+        $('detail-tree').textContent = TREE_NAMES[s.tree];
+        $('detail-date').textContent = new Intl.DateTimeFormat('zh-TW', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false }).format(new Date(s.completedAt));
+        $('detail-duration').textContent = s.durationMinutes + ' 分鐘';
+        $('tree-dialog').showModal();
+      }
+      function render() {
+        const a = state.active;
+        $('minutes').value = a ? String(a.durationMs / 60000) : String(state.settings.minutes);
+        $('minutes').disabled = Boolean(a) || blocked;
+        document.querySelectorAll('.tree-choice').forEach(btn => { btn.disabled = Boolean(a) || blocked; btn.setAttribute('aria-pressed', String((a?.tree ?? state.settings.tree) === btn.dataset.tree)); });
+        $('start-button').hidden = Boolean(a); $('pause-button').hidden = a?.status !== 'running'; $('resume-button').hidden = a?.status !== 'paused'; $('reset-button').hidden = !a;
+        $('start-button').disabled = blocked; $('pause-button').disabled = blocked; $('resume-button').disabled = blocked; $('reset-button').disabled = blocked;
+        renderTimerAndTree();
+        const today = todayStats(); $('today-count').textContent = today.count + ' 棵'; $('today-minutes').textContent = today.minutes + ' 分鐘';
+        renderForest(); renderRecords();
+      }
+      function switchTab(name) {
+        document.querySelectorAll('.tab-button').forEach(btn => { const active = btn.dataset.tab === name; btn.setAttribute('aria-selected', String(active)); btn.tabIndex = active ? 0 : -1; });
+        ['focus','forest','records'].forEach(tab => { $(tab + '-panel').hidden = tab !== name; });
+      }
+      function handleStorage(event) {
+        if (event.key !== STORAGE_KEY && event.key !== LIVE_KEY) return;
+        const currentOwner = liveOwner();
+        if (currentOwner && currentOwner !== tabId) {
+          if (!blocked) { blocked = true; state = loadState(); render(); setNotice('另一個分頁正在使用 Focus Forest。請回到原分頁操作。', 'warn'); }
+          return;
+        }
+        if (blocked && !currentOwner) {
+          blocked = false; state = loadState();
+          if (state.active?.status === 'running') { state.active.status = 'paused'; state.active.startedAt = null; state.active.ownerId = tabId; saveState(); }
+          render(); setNotice('原分頁已關閉，現在可從保留的進度繼續。', 'success');
+        }
+      }
+      function onPageHide() {
+        if (!blocked && state.active?.status === 'running') {
+          state.active.elapsedMs = elapsedMs(); state.active.startedAt = null; state.active.status = 'paused'; state.active.savedAt = Date.now(); saveState();
+        }
+        clearLive();
+      }
+
+      document.querySelectorAll('.tree-choice').forEach(btn => {
+        btn.querySelector('.choice-art').innerHTML = treeSvg(btn.dataset.tree, 3);
+        btn.addEventListener('click', () => { if (state.active || blocked) return; state.settings.tree = btn.dataset.tree; completedPreview = null; saveState(); render(); });
+      });
+      document.querySelectorAll('.tab-button').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+      $('minutes').addEventListener('change', () => { if (state.active || blocked) return; const minutes = selectedMinutes(); if (minutes !== null) { state.settings.minutes = minutes; completedPreview = null; saveState(); render(); } });
+      $('minutes').addEventListener('input', () => { $('time-error').textContent = ''; });
+      $('start-button').addEventListener('click', startSession);
+      $('pause-button').addEventListener('click', pauseSession);
+      $('resume-button').addEventListener('click', resumeSession);
+      $('reset-button').addEventListener('click', resetSession);
+      $('close-dialog').addEventListener('click', () => $('tree-dialog').close());
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') checkpoint(); else tick(); });
+      window.addEventListener('pagehide', onPageHide);
+      window.addEventListener('pageshow', event => { if (event.persisted && state.active?.status === 'paused') render(); });
+      window.addEventListener('storage', handleStorage);
+      initialRecovery(); render();
+      timerHandle = window.setInterval(tick, 250);
+      saveHandle = window.setInterval(() => { checkpoint(); if (!blocked && state.active) keepAlive(); }, 2000);
+      void timerHandle; void saveHandle;
+    })();
+  </script>
+</body>
+</html>
